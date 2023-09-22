@@ -24,7 +24,7 @@ You can install the development version of hubCI like so:
 ``` r
 # install.packages("remotes")
 
-remotes::install_github("Infectious-Disease-Modeling-Hubs/hubValidations")
+remotes::install_github("Infectious-Disease-Modeling-Hubs/hubCI")
 ```
 
 ## Example
