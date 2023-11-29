@@ -2,7 +2,6 @@ test_that("use_hub_github_action works", {
   proj_path <- paste0(tempdir(), "/test_proj")
   orig_wd <- getwd()
   on.exit(setwd(orig_wd))
-  on.exit(fs::dir_delete(proj_path))
 
   usethis::create_project(proj_path,
     rstudio = FALSE,
