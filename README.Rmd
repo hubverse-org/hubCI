@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# hubCI <img src="https://github.com/Infectious-Disease-Modeling-Hubs/hubDocs/blob/main/docs/_static/LOGO-CovidForecastHub_VIRUS-blue.png?raw=true" align="right" width="50px"/>
+# hubCI <img src="man/figures/logo.png" align="right" />
 
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)

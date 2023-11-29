@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# hubCI <img src="https://github.com/Infectious-Disease-Modeling-Hubs/hubDocs/blob/main/docs/_static/LOGO-CovidForecastHub_VIRUS-blue.png?raw=true" align="right" width="50px"/>
+# hubCI <img src="man/figures/logo.png" align="right" />
 
 <!-- badges: start -->
 
