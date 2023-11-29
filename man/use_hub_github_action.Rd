@@ -4,10 +4,16 @@
 \alias{use_hub_github_action}
 \title{Hubverse GitHub Action setup}
 \usage{
-use_hub_github_action(name)
+use_hub_github_action(name, ref = NULL)
 }
 \arguments{
 \item{name}{Name of workflow, i.e. the name of one of the \href{https://github.com/Infectious-Disease-Modeling-Hubs/hubverse-actions}{action repository} directories containing a GitHub Action workflow \code{.yaml} file.}
+
+\item{ref}{Desired Git reference, usually the name of a tag (\code{"v0.1.0"}) or
+branch (\code{"main"}). Other possibilities include a commit SHA (\code{"d1c516d"})
+or \code{"HEAD"} (meaning "tip of remote's default branch"). If not specified,
+defaults to the latest published release of \code{Infectious-Disease-Modeling-Hubs/hubverse-actions}
+(\url{https://github.com/Infectious-Disease-Modeling-Hubs/hubverse-actions/releases})}
 }
 \description{
 Sets up common continuous integration (CI) workflows for a hub
