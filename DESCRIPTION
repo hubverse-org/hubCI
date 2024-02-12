@@ -2,8 +2,13 @@ Package: hubCI
 Title: Toolbox for hubverse Continuous Integration
 Version: 0.0.0.9001
 Authors@R: 
-    person("Anna", "Krystalli", , "annakrystalli@googlemail.com", role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0002-2378-4915"))
+    c(person("Anna", "Krystalli", , "annakrystalli@googlemail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-2378-4915")),
+      person("Nicholas G.", "Reich", , "nick@umass.edu", role = "ctb",
+           comment = c(ORCID = "0000-0003-3503-9899")),
+      person("Evan L.", "Ray", , "elray@umass.edu", role = "ctb"),
+      person(family = "Consortium of Infectious Disease Modeling Hubs",
+           role = c("cph")))
 Description: Functions for setting up hubverse Continuous Integration workflows.
 License: MIT + file LICENSE
 Suggests: 
@@ -22,3 +27,4 @@ Imports:
 URL: https://github.com/Infectious-Disease-Modeling-Hubs/hubCI,
     https://infectious-disease-modeling-hubs.github.io/hubCI/
 BugReports: https://github.com/Infectious-Disease-Modeling-Hubs/hubCI/issues
+Config/Needs/website: Infectious-Disease-Modeling-Hubs/hubStyle
