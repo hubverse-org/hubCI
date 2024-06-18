@@ -7,20 +7,20 @@
 use_hub_github_action(name, ref = NULL)
 }
 \arguments{
-\item{name}{Name of workflow, i.e. the name of one of the \href{https://github.com/Infectious-Disease-Modeling-Hubs/hubverse-actions}{action repository}
+\item{name}{Name of workflow, i.e. the name of one of the \href{https://github.com/hubverse-org/hubverse-actions}{action repository}
 directories containing a GitHub Action workflow \code{.yaml} file.}
 
 \item{ref}{Desired Git reference, usually the name of a tag (\code{"v0.1.0"}) or
 branch (\code{"main"}). Other possibilities include a commit SHA (\code{"d1c516d"})
 or \code{"HEAD"} (meaning "tip of remote's default branch"). If not specified,
-defaults to the latest published release of \code{Infectious-Disease-Modeling-Hubs/hubverse-actions}
-(\url{https://github.com/Infectious-Disease-Modeling-Hubs/hubverse-actions/releases})}
+defaults to the latest published release of \code{hubverse-org/hubverse-actions}
+(\url{https://github.com/hubverse-org/hubverse-actions/releases})}
 }
 \description{
 Sets up common continuous integration (CI) workflows for a hub
 that is hosted on GitHub using
 \href{https://github.com/features/actions}{GitHub Actions}.
-Available actions are hosted in repository \href{https://github.com/Infectious-Disease-Modeling-Hubs/hubverse-actions}{Infectious-Disease-Modeling-Hubs/hubverse-actions}
+Available actions are hosted in repository \href{https://github.com/hubverse-org/hubverse-actions}{hubverse-org/hubverse-actions}
 The function creates the necessary directories and downloads the requested GitHub Action yaml file.
 }
 \examples{
