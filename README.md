@@ -10,8 +10,8 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 [![CRAN
 status](https://www.r-pkg.org/badges/version/hubCI)](https://CRAN.R-project.org/package=hubCI)
 [![Codecov test
-coverage](https://codecov.io/gh/Infectious-Disease-Modeling-Hubs/hubCI/branch/main/graph/badge.svg)](https://app.codecov.io/gh/Infectious-Disease-Modeling-Hubs/hubCI?branch=main)
-[![R-CMD-check](https://github.com/Infectious-Disease-Modeling-Hubs/hubCI/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Infectious-Disease-Modeling-Hubs/hubCI/actions/workflows/R-CMD-check.yaml)
+coverage](https://codecov.io/gh/hubverse-org/hubCI/branch/main/graph/badge.svg)](https://app.codecov.io/gh/hubverse-org/hubCI?branch=main)
+[![R-CMD-check](https://github.com/hubverse-org/hubCI/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/hubverse-org/hubCI/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
 The goal of hubCI is to provide functionality for setting up hubverse
@@ -24,7 +24,7 @@ You can install the development version of hubCI like so:
 ``` r
 # install.packages("remotes")
 
-remotes::install_github("Infectious-Disease-Modeling-Hubs/hubValidations")
+remotes::install_github("hubverse-org/hubValidations")
 ```
 
 ## Example
@@ -33,7 +33,7 @@ remotes::install_github("Infectious-Disease-Modeling-Hubs/hubValidations")
 
 For hubs hosted on GitHub, use `use_hub_github_action()` to download one
 of the [hubverse GitHub
-Actions](https://github.com/Infectious-Disease-Modeling-Hubs/hubverse-actions).
+Actions](https://github.com/hubverse-org/hubverse-actions).
 
 *Note: the hub most be configured as an R project (i.e. contain a
 `*.Rproj` file)*
