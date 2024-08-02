@@ -31,7 +31,7 @@ You can install the development version of hubCI like so:
 ``` r
 # install.packages("remotes")
 
-remotes::install_github("hubverse-org/hubValidations")
+remotes::install_github("hubverse-org/hubCI")
 ```
 
 ## Example
