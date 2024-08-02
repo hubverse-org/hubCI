@@ -1,33 +1,13 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://hubverse-org.github.io/hubCI/404.html</loc>
-  </url>
-  <url>
-    <loc>https://hubverse-org.github.io/hubCI/CODE_OF_CONDUCT.html</loc>
-  </url>
-  <url>
-    <loc>https://hubverse-org.github.io/hubCI/CONTRIBUTING.html</loc>
-  </url>
-  <url>
-    <loc>https://hubverse-org.github.io/hubCI/LICENSE-text.html</loc>
-  </url>
-  <url>
-    <loc>https://hubverse-org.github.io/hubCI/LICENSE.html</loc>
-  </url>
-  <url>
-    <loc>https://hubverse-org.github.io/hubCI/authors.html</loc>
-  </url>
-  <url>
-    <loc>https://hubverse-org.github.io/hubCI/index.html</loc>
-  </url>
-  <url>
-    <loc>https://hubverse-org.github.io/hubCI/news/index.html</loc>
-  </url>
-  <url>
-    <loc>https://hubverse-org.github.io/hubCI/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>https://hubverse-org.github.io/hubCI/reference/use_hub_github_action.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://hubverse-org.github.io/hubCI/404.html</loc></url>
+<url><loc>https://hubverse-org.github.io/hubCI/CODE_OF_CONDUCT.html</loc></url>
+<url><loc>https://hubverse-org.github.io/hubCI/CONTRIBUTING.html</loc></url>
+<url><loc>https://hubverse-org.github.io/hubCI/LICENSE-text.html</loc></url>
+<url><loc>https://hubverse-org.github.io/hubCI/LICENSE.html</loc></url>
+<url><loc>https://hubverse-org.github.io/hubCI/authors.html</loc></url>
+<url><loc>https://hubverse-org.github.io/hubCI/index.html</loc></url>
+<url><loc>https://hubverse-org.github.io/hubCI/news/index.html</loc></url>
+<url><loc>https://hubverse-org.github.io/hubCI/reference/index.html</loc></url>
+<url><loc>https://hubverse-org.github.io/hubCI/reference/use_hub_github_action.html</loc></url>
 </urlset>
+
