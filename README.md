@@ -12,6 +12,7 @@ status](https://www.r-pkg.org/badges/version/hubCI)](https://CRAN.R-project.org/
 [![Codecov test
 coverage](https://codecov.io/gh/hubverse-org/hubCI/branch/main/graph/badge.svg)](https://app.codecov.io/gh/hubverse-org/hubCI?branch=main)
 [![R-CMD-check](https://github.com/hubverse-org/hubCI/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/hubverse-org/hubCI/actions/workflows/R-CMD-check.yaml)
+
 <!-- badges: end -->
 
 The goal of hubCI is to provide functionality for setting up hubverse
@@ -19,7 +20,20 @@ Continuous Integration workflows.
 
 ## Installation
 
-You can install the development version of hubCI like so:
+### Latest
+
+You can install the [latest version of hubCI from the
+R-universe](https://hubverse-org.r-universe.dev/hubAdmin):
+
+``` r
+install.packages("hubCI", repos = c("https://hubverse-org.r-universe.dev", "https://cloud.r-project.org"))
+```
+
+### Development
+
+If you want to test out new features that have not yet been released,
+you can install the development version of hubCI from
+[GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("remotes")
