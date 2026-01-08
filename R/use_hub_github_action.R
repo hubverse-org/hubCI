@@ -42,10 +42,12 @@ use_hub_github_action <- function(name, ref = NULL) {
 # usethis internal utilities:
 # https://github.com/r-lib/usethis/blob/9ac020dbf6b7d42e4f7915fec567184acd671826/R/github-actions.R#L259-L283
 latest_release <- function() {
-  raw_releases <- gh::gh("/repos/{owner}/{repo}/releases",
+  raw_releases <- gh::gh(
+    "/repos/{owner}/{repo}/releases",
     owner = "hubverse-org",
     repo = "hubverse-actions",
-    .api_url = "https://github.com", .limit = Inf
+    .api_url = "https://github.com",
+    .limit = Inf
   )
 
   tag_names <- purrr::discard(
