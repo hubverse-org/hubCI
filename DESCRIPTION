@@ -24,7 +24,8 @@ Imports:
     gh,
     purrr,
     rlang (>= 1.0.0),
-    utils
+    utils,
+    yaml
 URL: https://github.com/hubverse-org/hubCI,
     https://hubverse-org.github.io/hubCI/
 BugReports: https://github.com/hubverse-org/hubCI/issues
