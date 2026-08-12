@@ -33,10 +33,10 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.1.9000" id="hubci-0019000">hubCI 0.0.1.9000<a class="anchor" aria-label="anchor" href="#hubci-0019000"></a></h2>
-<ul><li>
-<code><a href="../reference/use_hub_github_action.html">use_hub_github_action()</a></code> now accepts any git reference GitHub recognises, including branch names containing slashes such as <code>"ak/my-feature/27"</code>, which previously failed with a 404 error.</li>
-<li>
-<code><a href="../reference/use_hub_github_action.html">use_hub_github_action()</a></code> now leaves an existing workflow file untouched when it already matches the version being downloaded, and asks before overwriting one that differs (in a non-interactive session it overwrites and says so).</li>
+<ul><li><p><code><a href="../reference/use_hub_github_action.html">use_hub_github_action()</a></code> now fails with the list of workflows a hub can add when asked for anything else, such as the <code>pr-comment</code> composite action, instead of reporting a download error.</p></li>
+<li><p>Workflows that only work as a pair are now added together: asking for <code>validate-submission</code> also adds <code>validate-submission-comment</code>, which posts the validation result on the submitter’s pull request.</p></li>
+<li><p><code><a href="../reference/use_hub_github_action.html">use_hub_github_action()</a></code> now accepts any git reference GitHub recognises, including branch names containing slashes such as <code>"ak/my-feature/27"</code>, which previously failed with a 404 error.</p></li>
+<li><p><code><a href="../reference/use_hub_github_action.html">use_hub_github_action()</a></code> now leaves an existing workflow file untouched when it already matches the version being downloaded, and asks before overwriting one that differs (in a non-interactive session it overwrites and says so).</p></li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.1" id="hubci-001">hubCI 0.0.1<a class="anchor" aria-label="anchor" href="#hubci-001"></a></h2>
