@@ -46,6 +46,13 @@ test_that("use_hub_github_action works", {
   # r-universe, so this marks which version of the workflow was downloaded.
   expect_false(any(grepl("remotes::install_github", workflow)))
 
+  # Compares the bytes real gh() returns against the file just written from
+  # them, which the tests using the stubbed gh() cannot check.
+  expect_message(
+    use_hub_github_action(name = "validate-submission"),
+    "Leaving '.github/workflows/validate-submission.yaml' unchanged"
+  )
+
   fs::file_delete(ga_path)
   expect_false(fs::file_exists(ga_path))
 
@@ -147,6 +154,22 @@ test_that("use_hub_github_action overwrites a differing workflow", {
     "Overwriting '.github/workflows/validate-submission.yaml'"
   )
   expect_equal(readLines(ga_path), "name: mock workflow")
+})
+
+test_that("use_hub_github_action leaves a workflow alone when asked not to", {
+  withr::local_dir(withr::local_tempdir())
+  local_mocked_action()
+  # Stands in for an interactive session where the prompt is declined.
+  local_mocked_bindings(confirm_overwrite = function(path) FALSE)
+  ga_path <- ".github/workflows/validate-submission.yaml"
+  fs::dir_create(".github/workflows")
+  writeLines("stale", ga_path)
+
+  expect_message(
+    use_hub_github_action(name = "validate-submission", ref = "main"),
+    "Not overwriting '.github/workflows/validate-submission.yaml'"
+  )
+  expect_equal(readLines(ga_path), "stale")
 })
 
 test_that("use_hub_github_action errors informatively on an unknown workflow", {
