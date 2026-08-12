@@ -2,13 +2,14 @@
 % Please edit documentation in R/use_hub_github_action.R
 \name{use_hub_github_action}
 \alias{use_hub_github_action}
-\title{Hubverse GitHub Action setup}
+\title{Hubverse GitHub Actions workflow setup}
 \usage{
 use_hub_github_action(name, ref = NULL)
 }
 \arguments{
-\item{name}{Name of workflow, i.e. the name of one of the \href{https://github.com/hubverse-org/hubverse-actions}{action repository}
-directories containing a GitHub Action workflow \code{.yaml} file.}
+\item{name}{Name of workflow, i.e. the name of one of the \href{https://github.com/hubverse-org/hubverse-actions}{workflow repository}
+directories holding a workflow \code{.yaml} file of the same name. Asking for
+anything else, such as a composite action, lists the workflows a hub can add.}
 
 \item{ref}{Desired Git reference, usually the name of a tag (\code{"v0.1.0"}) or
 branch (\code{"main"}, including branch names containing slashes such as
@@ -18,25 +19,30 @@ defaults to the latest published release of \code{hubverse-org/hubverse-actions}
 (\url{https://github.com/hubverse-org/hubverse-actions/releases})}
 }
 \value{
-The path of the workflow file, invisibly. Called for the side
-effect of writing \verb{.github/workflows/<name>.yaml}.
+The paths of the workflow files added, invisibly. Called for the
+side effect of writing \verb{.github/workflows/<name>.yaml}.
 }
 \description{
 Sets up common continuous integration (CI) workflows for a hub
 that is hosted on GitHub using
 \href{https://github.com/features/actions}{GitHub Actions}.
-Available actions are hosted in repository \href{https://github.com/hubverse-org/hubverse-actions}{hubverse-org/hubverse-actions}
-The function creates the necessary directories and downloads the requested GitHub Action yaml file.
+Available workflows are hosted in repository \href{https://github.com/hubverse-org/hubverse-actions}{hubverse-org/hubverse-actions}
+The function creates the necessary directories and downloads the requested workflow \code{.yaml} file.
 }
 \details{
 The workflow is written to the root of the hub, i.e. the closest enclosing
 directory containing a \verb{hub-config/} directory, falling back to the working
-directory if there is none.
+directory if there is none within the repository you are in.
+
+Some workflows only work as a pair, one running the checks and another
+posting their result, and are added together: asking for
+\code{"validate-submission"} also adds \code{"validate-submission-comment"}.
 
 If the workflow file already exists, it is left alone when its contents match
 what is being downloaded. Otherwise, an interactive session asks before
 overwriting it, while a non-interactive one overwrites it and reports that it
-has done so.
+has done so. A paired workflow you did not ask for is the exception: local
+changes to it stand unless you confirm the overwrite, or ask for it by name.
 
 Inspired by \code{usethis::use_github_action()}, and additionally accepts branch
 names containing slashes, which that function truncates at the first slash.

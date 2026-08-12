@@ -3,17 +3,18 @@
 # against the gh API. Unlike write_over(), a non-interactive session overwrites
 # a differing file rather than refusing to.
 
-#' Hubverse GitHub Action setup
+#' Hubverse GitHub Actions workflow setup
 #'
 #' Sets up common continuous integration (CI) workflows for a hub
 #' that is hosted on GitHub using
 #' [GitHub Actions](https://github.com/features/actions).
-#' Available actions are hosted in repository [hubverse-org/hubverse-actions](
+#' Available workflows are hosted in repository [hubverse-org/hubverse-actions](
 #' https://github.com/hubverse-org/hubverse-actions)
-#' The function creates the necessary directories and downloads the requested GitHub Action yaml file.
-#' @param name Name of workflow, i.e. the name of one of the [action repository](
+#' The function creates the necessary directories and downloads the requested workflow `.yaml` file.
+#' @param name Name of workflow, i.e. the name of one of the [workflow repository](
 #' https://github.com/hubverse-org/hubverse-actions)
-#' directories containing a GitHub Action workflow `.yaml` file.
+#' directories holding a workflow `.yaml` file of the same name. Asking for
+#' anything else, such as a composite action, lists the workflows a hub can add.
 #' @param ref Desired Git reference, usually the name of a tag (`"v0.1.0"`) or
 #'   branch (`"main"`, including branch names containing slashes such as
 #'   `"ak/my-feature/27"`). Other possibilities include a commit SHA (`"d1c516d"`)
@@ -21,18 +22,23 @@
 #'   defaults to the latest published release of `hubverse-org/hubverse-actions`
 #'   (<https://github.com/hubverse-org/hubverse-actions/releases>)
 #'
-#' @returns The path of the workflow file, invisibly. Called for the side
-#'   effect of writing `.github/workflows/<name>.yaml`.
+#' @returns The paths of the workflow files added, invisibly. Called for the
+#'   side effect of writing `.github/workflows/<name>.yaml`.
 #'
 #' @details
 #' The workflow is written to the root of the hub, i.e. the closest enclosing
 #' directory containing a `hub-config/` directory, falling back to the working
-#' directory if there is none.
+#' directory if there is none within the repository you are in.
+#'
+#' Some workflows only work as a pair, one running the checks and another
+#' posting their result, and are added together: asking for
+#' `"validate-submission"` also adds `"validate-submission-comment"`.
 #'
 #' If the workflow file already exists, it is left alone when its contents match
 #' what is being downloaded. Otherwise, an interactive session asks before
 #' overwriting it, while a non-interactive one overwrites it and reports that it
-#' has done so.
+#' has done so. A paired workflow you did not ask for is the exception: local
+#' changes to it stand unless you confirm the overwrite, or ask for it by name.
 #'
 #' Inspired by `usethis::use_github_action()`, and additionally accepts branch
 #' names containing slashes, which that function truncates at the first slash.
@@ -46,13 +52,38 @@
 #' }
 use_hub_github_action <- function(name, ref = NULL) {
   ref <- ref %||% latest_release()
-  contents <- fetch_action_yaml(name, ref)
+  files <- resolve_workflows(name, ref)
 
   wd <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
   root <- hub_root(wd)
   if (!identical(root, wd)) {
     rlang::inform(c(i = sprintf("Using hub root '%s'", root)))
   }
+  paired <- setdiff(names(files), name)
+  if (length(paired) > 0L) {
+    rlang::inform(c(
+      i = sprintf(
+        "'%s' works as a pair with %s, so both are added.",
+        name,
+        paste0("'", paired, "'", collapse = " and ")
+      )
+    ))
+  }
+
+  paths <- purrr::imap_chr(
+    files,
+    write_workflow,
+    ref = ref,
+    root = root,
+    requested = name
+  )
+  invisible(unname(paths[!is.na(paths)]))
+}
+
+# Write one workflow file, reporting what happened to it. Returns the path of
+# the file now holding the workflow, or NA if an existing file was kept in its
+# place instead.
+write_workflow <- function(contents, name, ref, root, requested) {
   rel_dir <- file.path(".github", "workflows")
   rel_path <- file.path(rel_dir, paste0(name, ".yaml"))
   path <- file.path(root, rel_path)
@@ -61,11 +92,14 @@ use_hub_github_action <- function(name, ref = NULL) {
   if (existing) {
     if (identical(readBin(path, "raw", n = file.size(path)), contents)) {
       rlang::inform(c(v = sprintf("Leaving '%s' unchanged", rel_path)))
-      return(invisible(path))
+      return(path)
     }
-    if (!confirm_overwrite(rel_path)) {
+    # A workflow the hub did not ask for keeps its local edits unattended; ask
+    # for it by name to replace it.
+    unattended <- identical(name, requested)
+    if (!confirm_overwrite(rel_path, unattended = unattended)) {
       rlang::inform(c(x = sprintf("Not overwriting '%s'", rel_path)))
-      return(invisible(path))
+      return(NA_character_)
     }
   }
 
@@ -80,46 +114,11 @@ use_hub_github_action <- function(name, ref = NULL) {
       "%s '%s' from '%s'",
       if (existing) "Overwriting" else "Saving",
       rel_path,
-      action_source(name, ref)
+      workflow_source(name, ref)
     )
   ))
 
-  invisible(path)
-}
-
-# Download the contents of a workflow file from hubverse-actions. Uses the
-# contents endpoint, which takes the ref as a query parameter and therefore
-# handles refs containing slashes, unlike a `/blob/<ref>/<path>` URL, which
-# cannot be split into ref and path unambiguously.
-fetch_action_yaml <- function(name, ref, call = rlang::caller_env()) {
-  contents <- rlang::try_fetch(
-    gh(
-      "/repos/{owner}/{repo}/contents/{path}",
-      owner = actions_owner,
-      repo = actions_repo,
-      path = action_yaml_path(name),
-      ref = ref,
-      .accept = "application/vnd.github.raw"
-    ),
-    http_error_404 = function(cnd) {
-      rlang::abort(
-        c(
-          sprintf("Could not download '%s'.", action_source(name, ref)),
-          i = sprintf(
-            "Check that '%s' exists at that ref in <https://github.com/%s/%s>.",
-            action_yaml_path(name),
-            actions_owner,
-            actions_repo
-          )
-        ),
-        parent = cnd,
-        call = call
-      )
-    }
-  )
-  # gh returns the raw response with its own class attached, which writeBin
-  # rejects.
-  as.vector(contents)
+  path
 }
 
 # Locate the root of the hub containing `dir` (an already normalised path), i.e.
@@ -131,33 +130,23 @@ hub_root <- function(dir) {
     if (dir.exists(file.path(dir, "hub-config"))) {
       return(dir)
     }
+    # Stop at a repository boundary: a hub further up the tree is not the hub
+    # whose checkout we are standing in.
     parent <- dirname(dir)
-    if (identical(parent, dir)) {
+    if (file.exists(file.path(dir, ".git")) || identical(parent, dir)) {
       return(start)
     }
     dir <- parent
   }
 }
 
-confirm_overwrite <- function(path) {
+# Ask before replacing a file, if there is anyone to ask. `unattended` is the
+# answer when there is not.
+confirm_overwrite <- function(path, unattended) {
   if (!interactive()) {
-    return(TRUE)
+    return(unattended)
   }
   isTRUE(utils::askYesNo(sprintf("Overwrite pre-existing file '%s'?", path)))
-}
-
-action_yaml_path <- function(name) {
-  paste0(name, "/", name, ".yaml")
-}
-
-action_source <- function(name, ref) {
-  sprintf(
-    "%s/%s@%s/%s",
-    actions_owner,
-    actions_repo,
-    ref,
-    action_yaml_path(name)
-  )
 }
 
 # Get latest hubverse action release. Function largely sourced from
