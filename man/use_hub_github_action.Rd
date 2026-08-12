@@ -41,8 +41,10 @@ posting their result, and are added together: asking for
 If the workflow file already exists, it is left alone when its contents match
 what is being downloaded. Otherwise, an interactive session asks before
 overwriting it, while a non-interactive one overwrites it and reports that it
-has done so. A paired workflow you did not ask for is the exception: local
-changes to it stand unless you confirm the overwrite, or ask for it by name.
+has done so, so that an unattended run leaves the hub on the requested ref.
+Local edits to a workflow you asked for will not survive such a run. A paired
+workflow you did not ask for is the exception: local changes to it stand
+unless you confirm the overwrite, or ask for it by name.
 
 Inspired by \code{usethis::use_github_action()}, and additionally accepts branch
 names containing slashes, which that function truncates at the first slash.

@@ -92,6 +92,16 @@ test_that("use_hub_github_action works", {
   # r-universe, so this marks which version of the workflow was downloaded.
   expect_false(any(grepl("remotes::install_github", workflow)))
 
+  # Compares the bytes real gh() returns against the file just written from
+  # them, which the tests using the stubbed gh() cannot check.
+  msgs <- capture_messages(use_hub_github_action(name = "validate-submission"))
+  expect_match(
+    msgs,
+    "Leaving '.github/workflows/validate-submission.yaml' unchanged",
+    all = FALSE,
+    fixed = TRUE
+  )
+
   # Start clean: the default ref may pair this workflow with another.
   fs::dir_delete(".github")
 
@@ -237,6 +247,30 @@ test_that("use_hub_github_action replaces a workflow asked for by name", {
   use_hub_github_action(name = "validate-submission", ref = "main")
 
   expect_equal(readLines(customised)[1], "name: Hub Submission Validation (R)")
+})
+
+test_that("use_hub_github_action leaves a workflow alone when asked not to", {
+  withr::local_dir(withr::local_tempdir())
+  local_mocked_actions_repo()
+  # Stands in for an interactive session where the prompt is declined.
+  local_mocked_bindings(
+    confirm_overwrite = function(path, unattended) FALSE
+  )
+  customised <- ".github/workflows/validate-config.yaml"
+  fs::dir_create(".github/workflows")
+  writeLines("name: Hub Config Validation (R) # customised", customised)
+
+  paths <- NULL
+  expect_message(
+    paths <- use_hub_github_action(name = "validate-config", ref = "main"),
+    "Not overwriting '.github/workflows/validate-config.yaml'"
+  )
+
+  expect_equal(
+    readLines(customised),
+    "name: Hub Config Validation (R) # customised"
+  )
+  expect_length(paths, 0)
 })
 
 test_that("use_hub_github_action reports an unknown ref", {
