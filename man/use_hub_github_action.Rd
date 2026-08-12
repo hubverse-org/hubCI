@@ -36,7 +36,8 @@ directory if there is none.
 If the workflow file already exists, it is left alone when its contents match
 what is being downloaded. Otherwise, an interactive session asks before
 overwriting it, while a non-interactive one overwrites it and reports that it
-has done so.
+has done so, so that an unattended run leaves the hub on the requested ref.
+Local edits to a workflow will not survive such a run.
 
 Inspired by \code{usethis::use_github_action()}, and additionally accepts branch
 names containing slashes, which that function truncates at the first slash.
