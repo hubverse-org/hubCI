@@ -4,7 +4,7 @@ mock_workflow <- "name: mock workflow\n"
 # network nor depend on a branch that will eventually be deleted.
 local_mocked_action <- function(env = parent.frame()) {
   args <- new.env(parent = emptyenv())
-  local_mocked_bindings(
+  testthat::local_mocked_bindings(
     gh = function(endpoint, ...) {
       args$call <- list(endpoint = endpoint, ...)
       charToRaw(mock_workflow)
