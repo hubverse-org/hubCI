@@ -1,7 +1,20 @@
 mock_workflow <- "name: mock workflow\n"
 
-# Mock the workflow download and record the call, so tests neither hit the
-# network nor depend on a branch that will eventually be deleted.
+# Stub the workflow download: the fake gh() records the arguments it was given
+# and returns `mock_workflow` as raw bytes, the shape of a real raw contents
+# response.
+#
+# Use it when a test is about our own behaviour around the download (the
+# messages, where the file lands, how an existing file is treated) rather than
+# about the contents of a real workflow, so the test neither hits the network
+# nor depends on what a given ref happens to contain, or on a branch that will
+# eventually be deleted.
+#
+# Returns an environment whose `call` element holds the arguments of the last
+# stubbed gh() call, for tests that assert on the request itself; tests that
+# only care about the side effects can ignore it. `env` is the calling test's
+# frame, because local_mocked_bindings() would otherwise undo the mock as soon
+# as this helper returned.
 local_mocked_action <- function(env = parent.frame()) {
   args <- new.env(parent = emptyenv())
   testthat::local_mocked_bindings(
@@ -23,8 +36,15 @@ test_that("use_hub_github_action works", {
   ga_path <- ".github/workflows/validate-submission.yaml"
   expect_true(fs::dir_exists(".github/workflows"))
   expect_true(fs::file_exists(ga_path))
-  expect_gt(length(readLines(ga_path)), 0)
-  expect_false(any(grepl("remotes::install_github", readLines(ga_path))))
+  workflow <- readLines(ga_path)
+  expect_true(any(grepl(
+    "hubValidations::validate_pr(",
+    workflow,
+    fixed = TRUE
+  )))
+  # Releases up to v0.0.1 installed hubValidations with remotes, later ones from
+  # r-universe, so this marks which version of the workflow was downloaded.
+  expect_false(any(grepl("remotes::install_github", workflow)))
 
   fs::file_delete(ga_path)
   expect_false(fs::file_exists(ga_path))
@@ -32,8 +52,13 @@ test_that("use_hub_github_action works", {
   use_hub_github_action(name = "validate-submission", ref = "v0.0.1")
 
   expect_true(fs::file_exists(ga_path))
-  expect_gt(length(readLines(ga_path)), 0)
-  expect_true(any(grepl("remotes::install_github", readLines(ga_path))))
+  workflow <- readLines(ga_path)
+  expect_true(any(grepl(
+    "hubValidations::validate_pr(",
+    workflow,
+    fixed = TRUE
+  )))
+  expect_true(any(grepl("remotes::install_github", workflow)))
 })
 
 test_that("use_hub_github_action reports what it writes", {
