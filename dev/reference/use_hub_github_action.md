@@ -59,10 +59,9 @@ survive such a run. A paired workflow you did not ask for is the
 exception: local changes to it stand unless you confirm the overwrite,
 or ask for it by name.
 
-Inspired by
-[`usethis::use_github_action()`](https://usethis.r-lib.org/reference/use_github_action.html),
-and additionally accepts branch names containing slashes, which that
-function truncates at the first slash.
+Inspired by `usethis::use_github_action()`, and additionally accepts
+branch names containing slashes, which that function truncates at the
+first slash.
 
 ## Examples
 

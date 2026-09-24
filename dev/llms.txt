@@ -11,6 +11,7 @@ You can install the [latest version of hubCI from the
 R-universe](https://hubverse-org.r-universe.dev/hubCI):
 
 ``` r
+
 install.packages("hubCI", repos = c("https://hubverse-org.r-universe.dev", "https://cloud.r-project.org"))
 ```
 
@@ -21,6 +22,7 @@ you can install the development version of hubCI from
 [GitHub](https://github.com/) with:
 
 ``` r
+
 # install.packages("remotes")
 
 remotes::install_github("hubverse-org/hubCI")
@@ -39,6 +41,7 @@ Actions](https://github.com/hubverse-org/hubverse-actions).
 `*.Rproj` file)*
 
 ``` r
+
 library(hubCI)
 
 use_hub_github_action(name = "validate-submission")
