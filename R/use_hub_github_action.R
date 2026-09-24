@@ -56,11 +56,7 @@ use_hub_github_action <- function(name, ref = NULL) {
   ref <- ref %||% latest_release()
   files <- resolve_workflows(name, ref)
 
-  wd <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
-  root <- hub_root(wd)
-  if (!identical(root, wd)) {
-    rlang::inform(c(i = sprintf("Using hub root '%s'", root)))
-  }
+  root <- locate_hub_root()
   paired <- setdiff(names(files), name)
   if (length(paired) > 0L) {
     rlang::inform(c(
@@ -86,8 +82,24 @@ use_hub_github_action <- function(name, ref = NULL) {
 # the file now holding the workflow, or NA if an existing file was kept in its
 # place instead.
 write_workflow <- function(contents, name, ref, root, requested) {
-  rel_dir <- file.path(".github", "workflows")
-  rel_path <- file.path(rel_dir, paste0(name, ".yaml"))
+  # In a non-interactive session there is no one to confirm an overwrite.
+  # The workflow asked for by name is then replaced, but a paired workflow
+  # that came with it keeps its local edits.
+  write_github_file(
+    contents,
+    rel_path = file.path(".github", "workflows", paste0(name, ".yaml")),
+    root = root,
+    unattended = identical(name, requested),
+    source = workflow_source(name, ref)
+  )
+}
+
+# Write `contents` to `rel_path` under `root`, reporting what happened to the
+# file. `unattended` is whether a differing file is overwritten when there is
+# no one to ask, and `source` names where the contents came from. Returns the
+# path of the file now holding `contents`, or NA if an existing file was kept
+# in its place instead.
+write_github_file <- function(contents, rel_path, root, unattended, source) {
   path <- file.path(root, rel_path)
 
   existing <- file.exists(path)
@@ -96,15 +108,13 @@ write_workflow <- function(contents, name, ref, root, requested) {
       rlang::inform(c(v = sprintf("Leaving '%s' unchanged", rel_path)))
       return(path)
     }
-    # A workflow the hub did not ask for keeps its local edits unattended; ask
-    # for it by name to replace it.
-    unattended <- identical(name, requested)
     if (!confirm_overwrite(rel_path, unattended = unattended)) {
       rlang::inform(c(x = sprintf("Not overwriting '%s'", rel_path)))
       return(NA_character_)
     }
   }
 
+  rel_dir <- dirname(rel_path)
   dir <- file.path(root, rel_dir)
   if (!dir.exists(dir)) {
     dir.create(dir, recursive = TRUE)
@@ -116,15 +126,26 @@ write_workflow <- function(contents, name, ref, root, requested) {
       "%s '%s' from '%s'",
       if (existing) "Overwriting" else "Saving",
       rel_path,
-      workflow_source(name, ref)
+      source
     )
   ))
 
   path
 }
 
+# The hub root to write into, reporting it when it is not the working
+# directory.
+locate_hub_root <- function() {
+  wd <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
+  root <- hub_root(wd)
+  if (!identical(root, wd)) {
+    rlang::inform(c(i = sprintf("Using hub root '%s'", root)))
+  }
+  root
+}
+
 # Locate the root of the hub containing `dir` (an already normalised path), i.e.
-# where the workflow directory belongs. usethis::use_github_action() used to
+# where the `.github/` directory belongs. usethis::use_github_action() used to
 # resolve this via the active project.
 hub_root <- function(dir) {
   start <- dir

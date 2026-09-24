@@ -58,6 +58,28 @@ library(hubCI)
 use_hub_github_action(name = "validate-submission")
 ```
 
+### Keeping the workflows’ actions up to date
+
+The workflows depend on other GitHub Actions, both third-party actions
+such as `actions/checkout` and the hubverse actions themselves. An
+action referenced by major version picks up minor and patch releases
+automatically, but a new major release does not reach the hub until the
+workflow is edited.
+
+`use_hub_dependabot()` installs a configuration file at
+`.github/dependabot.yml`. This file configures
+[Dependabot](https://docs.github.com/en/code-security/dependabot),
+GitHub’s dependency update service, to check the actions the hub’s
+workflows depend on once a week. For each action with a new major
+version, Dependabot opens a pull request in the hub that updates the
+workflow to it. This keeps the hub’s workflow dependencies current, with
+each update reviewed rather than discovered when an old version stops
+working.
+
+``` r
+use_hub_dependabot()
+```
+
 ------------------------------------------------------------------------
 
 ## Code of Conduct
@@ -70,5 +92,5 @@ project, you agree to abide by its terms.
 
 Interested in contributing back to the open-source Hubverse project?
 Learn more about how to [get involved in the Hubverse
-Community](https://hubverse.io/community/) or
-[how to contribute to the hubCI package](.github/CONTRIBUTING.md).
+Community](https://hubverse.io/community/) or [how to contribute to the
+hubCI package](.github/CONTRIBUTING.md).
