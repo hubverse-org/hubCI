@@ -2,6 +2,13 @@
 
 ## hubCI 0.0.1.9000
 
+- New
+  [`use_hub_dependabot()`](https://hubverse-org.github.io/hubCI/dev/reference/use_hub_dependabot.md)
+  installs a Dependabot configuration at `.github/dependabot.yml`, so
+  that Dependabot opens a pull request in the hub whenever an action
+  used by its workflows has a new major release
+  ([\#25](https://github.com/hubverse-org/hubCI/issues/25)).
+
 - [`use_hub_github_action()`](https://hubverse-org.github.io/hubCI/dev/reference/use_hub_github_action.md)
   now fails with the list of workflows a hub can add when asked for
   anything else, such as the `pr-comment` composite action, instead of

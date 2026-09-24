@@ -97,6 +97,14 @@
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/hubverse-org/hubCI" class="external-link">hubCI</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="reference/use_hub_github_action.html">use_hub_github_action</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"validate-submission"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="keeping-the-workflows-actions-up-to-date">Keeping the workflows’ actions up to date<a class="anchor" aria-label="anchor" href="#keeping-the-workflows-actions-up-to-date"></a>
+</h3>
+<p>The workflows depend on other GitHub Actions, both third-party actions such as <code>actions/checkout</code> and the hubverse actions themselves. An action referenced by major version picks up minor and patch releases automatically, but a new major release does not reach the hub until the workflow is edited.</p>
+<p><code><a href="reference/use_hub_dependabot.html">use_hub_dependabot()</a></code> installs a configuration file at <code>.github/dependabot.yml</code>. This file configures <a href="https://docs.github.com/en/code-security/dependabot" class="external-link">Dependabot</a>, GitHub’s dependency update service, to check the actions the hub’s workflows depend on once a week. For each action with a new major version, Dependabot opens a pull request in the hub that updates the workflow to it. This keeps the hub’s workflow dependencies current, with each update reviewed rather than discovered when an old version stops working.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/use_hub_dependabot.html">use_hub_dependabot</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <hr>
 </div>
 </div>
