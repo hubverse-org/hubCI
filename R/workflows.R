@@ -131,27 +131,31 @@ workflow_meta <- function(contents) {
   )
 }
 
-# Download the contents of a workflow file from hubverse-actions. Uses the
-# contents endpoint, which takes the ref as a query parameter and therefore
+fetch_workflow_yaml <- function(name, ref, call = rlang::caller_env()) {
+  fetch_file(workflow_yaml_path(name), ref, call = call)
+}
+
+# Download the contents of a file from hubverse-actions, as a raw vector. Uses
+# the contents endpoint, which takes the ref as a query parameter and therefore
 # handles refs containing slashes, unlike a `/blob/<ref>/<path>` URL, which
 # cannot be split into ref and path unambiguously.
-fetch_workflow_yaml <- function(name, ref, call = rlang::caller_env()) {
+fetch_file <- function(path, ref, call = rlang::caller_env()) {
   contents <- rlang::try_fetch(
     gh(
       "/repos/{owner}/{repo}/contents/{path}",
       owner = actions_owner,
       repo = actions_repo,
-      path = workflow_yaml_path(name),
+      path = path,
       ref = ref,
       .accept = "application/vnd.github.raw"
     ),
     http_error_404 = function(cnd) {
       rlang::abort(
         c(
-          sprintf("Could not download '%s'.", workflow_source(name, ref)),
+          sprintf("Could not download '%s'.", file_source(path, ref)),
           i = sprintf(
             "Check that '%s' exists at that ref in <https://github.com/%s>.",
-            workflow_yaml_path(name),
+            path,
             actions_slug
           )
         ),
@@ -170,5 +174,10 @@ workflow_yaml_path <- function(name) {
 }
 
 workflow_source <- function(name, ref) {
-  sprintf("%s@%s/%s", actions_slug, ref, workflow_yaml_path(name))
+  file_source(workflow_yaml_path(name), ref)
+}
+
+# A file in hubverse-actions as it appears in messages.
+file_source <- function(path, ref) {
+  sprintf("%s@%s/%s", actions_slug, ref, path)
 }
