@@ -46,7 +46,12 @@ test_that("use_hub_dependabot works", {
   # The configuration is not in a release yet.
   path <- use_hub_dependabot(ref = "main")
 
-  expect_equal(path, file.path(getwd(), ".github/dependabot.yml"))
+  # The hub root is normalised, which on Windows expands a working directory
+  # reported by its short name.
+  expect_equal(
+    path,
+    file.path(normalizePath(getwd(), winslash = "/"), ".github/dependabot.yml")
+  )
   config <- yaml::read_yaml(".github/dependabot.yml")
   expect_equal(config$version, 2)
   expect_equal(config$updates[[1]]$`package-ecosystem`, "github-actions")
@@ -77,7 +82,12 @@ test_that("use_hub_dependabot reports what it writes", {
     all = FALSE,
     fixed = TRUE
   )
-  expect_equal(path, file.path(getwd(), ".github/dependabot.yml"))
+  # The hub root is normalised, which on Windows expands a working directory
+  # reported by its short name.
+  expect_equal(
+    path,
+    file.path(normalizePath(getwd(), winslash = "/"), ".github/dependabot.yml")
+  )
   expect_equal(readLines(path), strsplit(mock_dependabot, "\n")[[1]])
   # The ref is passed separately from the path, so slashes in a branch name
   # survive instead of being truncated at the first segment.
