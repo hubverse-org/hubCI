@@ -75,7 +75,7 @@ local_mocked_actions_repo <- function(
 
 # Whether one of the messages captured from a call is `text`, verbatim.
 expect_message_fixed <- function(msgs, text) {
-  expect_match(msgs, text, all = FALSE, fixed = TRUE)
+  testthat::expect_match(msgs, text, all = FALSE, fixed = TRUE)
 }
 
 # Give a hub an existing copy of each workflow in the pair.
