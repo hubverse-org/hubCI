@@ -5,7 +5,7 @@
 * Workflows that only work as a pair are now added together: asking for `validate-submission` also adds `validate-submission-comment`, which posts the validation result on the submitter's pull request.
 
 * `use_hub_github_action()` now accepts any git reference GitHub recognises, including branch names containing slashes such as `"ak/my-feature/27"`, which previously failed with a 404 error.
-* `use_hub_github_action()` now leaves an existing workflow file untouched when it already matches the version being downloaded, and asks before overwriting one that differs (in a non-interactive session it overwrites and says so).
+* `use_hub_github_action()` gains an `overwrite` argument, `FALSE` by default. Existing workflow files are replaced when it is `TRUE`. Otherwise an interactive session asks once before replacing them, and a non-interactive session stops with an error instead of overwriting. Paired workflows are always replaced together (#35).
 
 # hubCI 0.0.1
 

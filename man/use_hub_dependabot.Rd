@@ -4,7 +4,7 @@
 \alias{use_hub_dependabot}
 \title{Hubverse Dependabot configuration setup}
 \usage{
-use_hub_dependabot(ref = NULL)
+use_hub_dependabot(ref = NULL, overwrite = FALSE)
 }
 \arguments{
 \item{ref}{Desired Git reference, usually the name of a tag (\code{"v0.1.0"}) or
@@ -13,11 +13,15 @@ branch (\code{"main"}, including branch names containing slashes such as
 or \code{"HEAD"} (meaning "tip of remote's default branch"). If not specified,
 defaults to the latest published release of \code{hubverse-org/hubverse-actions}
 (\url{https://github.com/hubverse-org/hubverse-actions/releases})}
+
+\item{overwrite}{Whether to replace files that already exist. If \code{FALSE},
+an interactive session asks first, and a non-interactive session stops
+with an error.}
 }
 \value{
 The path of the configuration file, invisibly, or an empty
-character vector if an existing file was kept in its place. Called for
-the side effect of writing \code{.github/dependabot.yml}.
+character vector if an existing file was left in place. Called for the
+side effect of writing \code{.github/dependabot.yml}.
 }
 \description{
 Sets up \href{https://docs.github.com/en/code-security/dependabot}{Dependabot}
@@ -40,13 +44,11 @@ once committed there.
 The file is written to the root of the hub, located as described in
 \code{\link[=use_hub_github_action]{use_hub_github_action()}}.
 
-An existing \code{.github/dependabot.yml} is treated as \code{\link[=use_hub_github_action]{use_hub_github_action()}}
-treats an existing workflow: it is left alone when its contents match what
-is being downloaded. Otherwise, an interactive session asks before
-overwriting it, while a non-interactive one overwrites it and reports that
-it has done so. A hub that already uses Dependabot for another ecosystem
-should add the \code{github-actions} entry from the downloaded configuration to
-its existing file instead of replacing the file.
+An existing \code{.github/dependabot.yml} is replaced when \code{overwrite = TRUE}.
+Otherwise an interactive session asks first, and a non-interactive session
+stops with an error. A hub that already uses Dependabot for another
+ecosystem should add the \code{github-actions} entry from the downloaded
+configuration to its existing file instead of replacing the file.
 }
 \examples{
 \dontrun{

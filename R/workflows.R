@@ -17,15 +17,10 @@
 resolve_workflows <- function(name, ref, call = rlang::caller_env()) {
   available <- installable_workflows(ref, call = call)
   if (!name %in% available) {
-    rlang::abort(
+    cli::cli_abort(
       c(
-        sprintf("'%s' is not a workflow you can add to a hub.", name),
-        i = sprintf(
-          "Available at '%s@%s': %s.",
-          actions_slug,
-          ref,
-          paste(available, collapse = ", ")
-        )
+        "{.val {name}} is not a workflow you can add to a hub.",
+        i = "Available at {.val {actions_slug}@{ref}}: {.val {available}}."
       ),
       call = call
     )
@@ -59,10 +54,10 @@ repo_paths <- function(ref, call = rlang::caller_env()) {
       per_page = 1
     ),
     http_error_404 = function(cnd) {
-      rlang::abort(
+      cli::cli_abort(
         c(
-          sprintf("Could not find ref '%s' in '%s'.", ref, actions_slug),
-          i = "`ref` should be a tag, branch, commit SHA or \"HEAD\"."
+          "Could not find ref {.val {ref}} in {.val {actions_slug}}.",
+          i = "{.arg ref} should be a tag, branch, commit SHA or {.val HEAD}."
         ),
         parent = cnd,
         call = call
@@ -77,12 +72,8 @@ repo_paths <- function(ref, call = rlang::caller_env()) {
     recursive = 1
   )
   if (isTRUE(tree$truncated)) {
-    rlang::abort(
-      sprintf(
-        "Could not list '%s@%s': the repository tree is too large.",
-        actions_slug,
-        ref
-      ),
+    cli::cli_abort(
+      "Could not list {.val {actions_slug}@{ref}}: the repository tree is too large.",
       call = call
     )
   }
@@ -150,14 +141,10 @@ fetch_file <- function(path, ref, call = rlang::caller_env()) {
       .accept = "application/vnd.github.raw"
     ),
     http_error_404 = function(cnd) {
-      rlang::abort(
+      cli::cli_abort(
         c(
-          sprintf("Could not download '%s'.", file_source(path, ref)),
-          i = sprintf(
-            "Check that '%s' exists at that ref in <https://github.com/%s>.",
-            path,
-            actions_slug
-          )
+          "Could not download {.val {file_source(path, ref)}}.",
+          i = "Check that {.path {path}} exists at that ref in {.url https://github.com/{actions_slug}}."
         ),
         parent = cnd,
         call = call
