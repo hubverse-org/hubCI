@@ -12,7 +12,7 @@ necessary and downloads the configuration to `.github/dependabot.yml`.
 ## Usage
 
 ``` r
-use_hub_dependabot(ref = NULL)
+use_hub_dependabot(ref = NULL, overwrite = FALSE)
 ```
 
 ## Arguments
@@ -27,11 +27,17 @@ use_hub_dependabot(ref = NULL)
   `hubverse-org/hubverse-actions`
   (<https://github.com/hubverse-org/hubverse-actions/releases>)
 
+- overwrite:
+
+  Whether to replace files that already exist. If `FALSE`, an
+  interactive session asks first, and a non-interactive session stops
+  with an error.
+
 ## Value
 
 The path of the configuration file, invisibly, or an empty character
-vector if an existing file was kept in its place. Called for the side
-effect of writing `.github/dependabot.yml`.
+vector if an existing file was left in place. Called for the side effect
+of writing `.github/dependabot.yml`.
 
 ## Details
 
@@ -48,14 +54,12 @@ the hub's default branch, so it takes effect once committed there.
 The file is written to the root of the hub, located as described in
 [`use_hub_github_action()`](https://hubverse-org.github.io/hubCI/dev/reference/use_hub_github_action.md).
 
-An existing `.github/dependabot.yml` is treated as
-[`use_hub_github_action()`](https://hubverse-org.github.io/hubCI/dev/reference/use_hub_github_action.md)
-treats an existing workflow: it is left alone when its contents match
-what is being downloaded. Otherwise, an interactive session asks before
-overwriting it, while a non-interactive one overwrites it and reports
-that it has done so. A hub that already uses Dependabot for another
-ecosystem should add the `github-actions` entry from the downloaded
-configuration to its existing file instead of replacing the file.
+An existing `.github/dependabot.yml` is replaced when
+`overwrite = TRUE`. Otherwise an interactive session asks first, and a
+non-interactive session stops with an error. A hub that already uses
+Dependabot for another ecosystem should add the `github-actions` entry
+from the downloaded configuration to its existing file instead of
+replacing the file.
 
 ## Examples
 

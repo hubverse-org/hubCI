@@ -53,7 +53,7 @@ The function creates the necessary directories and downloads the requested workf
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">use_hub_github_action</span><span class="op">(</span><span class="va">name</span>, ref <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">use_hub_github_action</span><span class="op">(</span><span class="va">name</span>, ref <span class="op">=</span> <span class="cn">NULL</span>, overwrite <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -74,10 +74,17 @@ or <code>"HEAD"</code> (meaning "tip of remote's default branch"). If not specif
 defaults to the latest published release of <code>hubverse-org/hubverse-actions</code>
 (<a href="https://github.com/hubverse-org/hubverse-actions/releases" class="external-link">https://github.com/hubverse-org/hubverse-actions/releases</a>)</p></dd>
 
+
+<dt id="arg-overwrite">overwrite<a class="anchor" aria-label="anchor" href="#arg-overwrite"></a></dt>
+<dd><p>Whether to replace files that already exist. If <code>FALSE</code>,
+an interactive session asks first, and a non-interactive session stops
+with an error.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>The paths of the workflow files added, invisibly. Called for the
+    <p>The paths of the workflow files written, invisibly, or an empty
+character vector if existing files were left in place. Called for the
 side effect of writing <code>.github/workflows/&lt;name&gt;.yaml</code>.</p>
     </div>
     <div class="section level2">
@@ -88,13 +95,10 @@ directory if there is none within the repository you are in.</p>
 <p>Some workflows only work as a pair, one running the checks and another
 posting their result, and are added together: asking for
 <code>"validate-submission"</code> also adds <code>"validate-submission-comment"</code>.</p>
-<p>If the workflow file already exists, it is left alone when its contents match
-what is being downloaded. Otherwise, an interactive session asks before
-overwriting it, while a non-interactive one overwrites it and reports that it
-has done so, so that an unattended run leaves the hub on the requested ref.
-Local edits to a workflow you asked for will not survive such a run. A paired
-workflow you did not ask for is the exception: local changes to it stand
-unless you confirm the overwrite, or ask for it by name.</p>
+<p>Existing workflow files are replaced when <code>overwrite = TRUE</code>. Otherwise an
+interactive session asks once, listing them, and a non-interactive session
+stops with an error. Nothing is written unless every file can be, so a
+pair is always replaced together.</p>
 <p>Inspired by <code>usethis::use_github_action()</code>, and additionally accepts branch
 names containing slashes, which that function truncates at the first slash.</p>
     </div>

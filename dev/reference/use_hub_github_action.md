@@ -11,7 +11,7 @@ requested workflow `.yaml` file.
 ## Usage
 
 ``` r
-use_hub_github_action(name, ref = NULL)
+use_hub_github_action(name, ref = NULL, overwrite = FALSE)
 ```
 
 ## Arguments
@@ -34,10 +34,17 @@ use_hub_github_action(name, ref = NULL)
   `hubverse-org/hubverse-actions`
   (<https://github.com/hubverse-org/hubverse-actions/releases>)
 
+- overwrite:
+
+  Whether to replace files that already exist. If `FALSE`, an
+  interactive session asks first, and a non-interactive session stops
+  with an error.
+
 ## Value
 
-The paths of the workflow files added, invisibly. Called for the side
-effect of writing `.github/workflows/<name>.yaml`.
+The paths of the workflow files written, invisibly, or an empty
+character vector if existing files were left in place. Called for the
+side effect of writing `.github/workflows/<name>.yaml`.
 
 ## Details
 
@@ -50,14 +57,10 @@ Some workflows only work as a pair, one running the checks and another
 posting their result, and are added together: asking for
 `"validate-submission"` also adds `"validate-submission-comment"`.
 
-If the workflow file already exists, it is left alone when its contents
-match what is being downloaded. Otherwise, an interactive session asks
-before overwriting it, while a non-interactive one overwrites it and
-reports that it has done so, so that an unattended run leaves the hub on
-the requested ref. Local edits to a workflow you asked for will not
-survive such a run. A paired workflow you did not ask for is the
-exception: local changes to it stand unless you confirm the overwrite,
-or ask for it by name.
+Existing workflow files are replaced when `overwrite = TRUE`. Otherwise
+an interactive session asks once, listing them, and a non-interactive
+session stops with an error. Nothing is written unless every file can
+be, so a pair is always replaced together.
 
 Inspired by `usethis::use_github_action()`, and additionally accepts
 branch names containing slashes, which that function truncates at the

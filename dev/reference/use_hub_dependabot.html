@@ -56,7 +56,7 @@ configuration to <code>.github/dependabot.yml</code>.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">use_hub_dependabot</span><span class="op">(</span>ref <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">use_hub_dependabot</span><span class="op">(</span>ref <span class="op">=</span> <span class="cn">NULL</span>, overwrite <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -71,12 +71,18 @@ or <code>"HEAD"</code> (meaning "tip of remote's default branch"). If not specif
 defaults to the latest published release of <code>hubverse-org/hubverse-actions</code>
 (<a href="https://github.com/hubverse-org/hubverse-actions/releases" class="external-link">https://github.com/hubverse-org/hubverse-actions/releases</a>)</p></dd>
 
+
+<dt id="arg-overwrite">overwrite<a class="anchor" aria-label="anchor" href="#arg-overwrite"></a></dt>
+<dd><p>Whether to replace files that already exist. If <code>FALSE</code>,
+an interactive session asks first, and a non-interactive session stops
+with an error.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>The path of the configuration file, invisibly, or an empty
-character vector if an existing file was kept in its place. Called for
-the side effect of writing <code>.github/dependabot.yml</code>.</p>
+character vector if an existing file was left in place. Called for the
+side effect of writing <code>.github/dependabot.yml</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -90,13 +96,11 @@ Dependabot reads the file from the hub's default branch, so it takes effect
 once committed there.</p>
 <p>The file is written to the root of the hub, located as described in
 <code><a href="use_hub_github_action.html">use_hub_github_action()</a></code>.</p>
-<p>An existing <code>.github/dependabot.yml</code> is treated as <code><a href="use_hub_github_action.html">use_hub_github_action()</a></code>
-treats an existing workflow: it is left alone when its contents match what
-is being downloaded. Otherwise, an interactive session asks before
-overwriting it, while a non-interactive one overwrites it and reports that
-it has done so. A hub that already uses Dependabot for another ecosystem
-should add the <code>github-actions</code> entry from the downloaded configuration to
-its existing file instead of replacing the file.</p>
+<p>An existing <code>.github/dependabot.yml</code> is replaced when <code>overwrite = TRUE</code>.
+Otherwise an interactive session asks first, and a non-interactive session
+stops with an error. A hub that already uses Dependabot for another
+ecosystem should add the <code>github-actions</code> entry from the downloaded
+configuration to its existing file instead of replacing the file.</p>
     </div>
 
     <div class="section level2">

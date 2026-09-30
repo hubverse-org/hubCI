@@ -24,9 +24,12 @@
   previously failed with a 404 error.
 
 - [`use_hub_github_action()`](https://hubverse-org.github.io/hubCI/dev/reference/use_hub_github_action.md)
-  now leaves an existing workflow file untouched when it already matches
-  the version being downloaded, and asks before overwriting one that
-  differs (in a non-interactive session it overwrites and says so).
+  gains an `overwrite` argument, `FALSE` by default. Existing workflow
+  files are replaced when it is `TRUE`. Otherwise an interactive session
+  asks once before replacing them, and a non-interactive session stops
+  with an error instead of overwriting. Paired workflows are always
+  replaced together
+  ([\#35](https://github.com/hubverse-org/hubCI/issues/35)).
 
 ## hubCI 0.0.1
 
