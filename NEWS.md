@@ -1,3 +1,5 @@
+# hubCI (development version)
+
 # hubCI 0.1.0
 
 * New `use_hub_dependabot()` installs a Dependabot configuration at `.github/dependabot.yml`, so that Dependabot opens a pull request in the hub whenever an action used by its workflows has a new major release (#25).
