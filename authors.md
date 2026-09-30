@@ -15,7 +15,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/hubverse-org/hubCI/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/hubverse-org/hubCI/blob/v0.1.0/DESCRIPTION)
 
 Krystalli A (2026). *hubCI: Toolbox for hubverse Continuous
 Integration*. R package version 0.1.0,
