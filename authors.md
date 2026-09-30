@@ -18,13 +18,13 @@ Source:
 [`DESCRIPTION`](https://github.com/hubverse-org/hubCI/blob/main/DESCRIPTION)
 
 Krystalli A (2026). *hubCI: Toolbox for hubverse Continuous
-Integration*. R package version 0.0.1,
+Integration*. R package version 0.1.0,
 <https://github.com/hubverse-org/hubCI>.
 
     @Manual{,
       title = {hubCI: Toolbox for hubverse Continuous Integration},
       author = {Anna Krystalli},
       year = {2026},
-      note = {R package version 0.0.1},
+      note = {R package version 0.1.0},
       url = {https://github.com/hubverse-org/hubCI},
     }
