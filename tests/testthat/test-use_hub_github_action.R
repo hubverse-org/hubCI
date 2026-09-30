@@ -73,6 +73,18 @@ local_mocked_actions_repo <- function(
   recorder
 }
 
+# Whether one of the messages captured from a call is `text`, verbatim.
+expect_message_fixed <- function(msgs, text) {
+  testthat::expect_match(msgs, text, all = FALSE, fixed = TRUE)
+}
+
+# Give a hub an existing copy of each workflow in the pair.
+write_stale_pair <- function() {
+  fs::dir_create(".github/workflows")
+  writeLines("stale", ".github/workflows/validate-submission.yaml")
+  writeLines("stale", ".github/workflows/validate-submission-comment.yaml")
+}
+
 test_that("use_hub_github_action works", {
   skip_if_offline()
   withr::local_dir(withr::local_tempdir())
@@ -92,14 +104,9 @@ test_that("use_hub_github_action works", {
   # r-universe, so this marks which version of the workflow was downloaded.
   expect_false(any(grepl("remotes::install_github", workflow)))
 
-  # Compares the bytes real gh() returns against the file just written from
-  # them, which the tests using the stubbed gh() cannot check.
-  msgs <- capture_messages(use_hub_github_action(name = "validate-submission"))
-  expect_match(
-    msgs,
-    "Leaving '.github/workflows/validate-submission.yaml' unchanged",
-    all = FALSE,
-    fixed = TRUE
+  expect_error(
+    use_hub_github_action(name = "validate-submission"),
+    "already exist"
   )
 
   # Start clean: the default ref may pair this workflow with another.
@@ -125,15 +132,13 @@ test_that("use_hub_github_action reports what it writes", {
     use_hub_github_action(name = "validate-config", ref = "v0.0.1")
   )
 
-  expect_match(msgs, "Creating '.github/workflows/'", all = FALSE, fixed = TRUE)
-  expect_match(
+  expect_message_fixed(msgs, "Creating '.github/workflows/'")
+  expect_message_fixed(
     msgs,
     paste0(
       "Saving '.github/workflows/validate-config.yaml' from ",
-      "'hubverse-org/hubverse-actions@v0.0.1/validate-config/validate-config.yaml'"
-    ),
-    all = FALSE,
-    fixed = TRUE
+      "\"hubverse-org/hubverse-actions@v0.0.1/validate-config/validate-config.yaml\""
+    )
   )
 })
 
@@ -167,11 +172,11 @@ test_that("use_hub_github_action rejects anything but a workflow", {
 
   err <- expect_error(
     use_hub_github_action(name = "pr-comment", ref = "main"),
-    "'pr-comment' is not a workflow you can add to a hub"
+    "\"pr-comment\" is not a workflow you can add to a hub"
   )
   expect_match(
     conditionMessage(err),
-    "validate-config, validate-submission, validate-submission-comment"
+    "\"validate-config\", \"validate-submission\", and \"validate-submission-comment\""
   )
   expect_error(
     use_hub_github_action(name = "no-such-thing", ref = "main"),
@@ -186,7 +191,7 @@ test_that("use_hub_github_action adds paired workflows together", {
 
   expect_message(
     paths <- use_hub_github_action(name = "validate-submission", ref = "main"),
-    "works as a pair with 'validate-submission-comment'"
+    "works as a pair with \"validate-submission-comment\""
   )
 
   expect_true(fs::file_exists(".github/workflows/validate-submission.yaml"))
@@ -209,67 +214,125 @@ test_that("use_hub_github_action adds a workflow its companion reports on", {
   ))
 })
 
-test_that("use_hub_github_action keeps local edits to a paired workflow", {
+test_that("use_hub_github_action stops at an existing file unattended", {
   withr::local_dir(withr::local_tempdir())
   local_mocked_actions_repo()
-  customised <- ".github/workflows/validate-submission.yaml"
   fs::dir_create(".github/workflows")
-  writeLines("name: Hub Submission Validation (R) # customised", customised)
+  writeLines("stale", ".github/workflows/validate-submission.yaml")
 
-  # The hub asked for the comment workflow, so its own edits to the workflow
-  # that comes with it are not silently replaced.
+  err <- expect_error(
+    use_hub_github_action(name = "validate-submission-comment", ref = "main"),
+    "'.github/workflows/validate-submission.yaml' already exists.",
+    fixed = TRUE
+  )
+
+  expect_match(conditionMessage(err), "Set `overwrite = TRUE`", fixed = TRUE)
+  # Nothing is written, so the pair does not end up half replaced.
+  expect_equal(readLines(".github/workflows/validate-submission.yaml"), "stale")
+  expect_false(fs::file_exists(
+    ".github/workflows/validate-submission-comment.yaml"
+  ))
+})
+
+test_that("use_hub_github_action lists every existing file in the error", {
+  withr::local_dir(withr::local_tempdir())
+  local_mocked_actions_repo()
+  write_stale_pair()
+
+  expect_error(
+    use_hub_github_action(name = "validate-submission", ref = "main"),
+    paste0(
+      "'.github/workflows/validate-submission.yaml' and ",
+      "'.github/workflows/validate-submission-comment.yaml' already exist."
+    ),
+    fixed = TRUE
+  )
+})
+
+test_that("use_hub_github_action replaces existing files with overwrite", {
+  withr::local_dir(withr::local_tempdir())
+  local_mocked_actions_repo()
+  write_stale_pair()
+  # An interactive session is not asked either.
+  rlang::local_interactive(TRUE)
+  local_mocked_bindings(
+    confirm_overwrite = function(rel_paths) stop("asked")
+  )
+
+  msgs <- capture_messages(
+    paths <- use_hub_github_action(
+      name = "validate-submission",
+      ref = "main",
+      overwrite = TRUE
+    )
+  )
+
+  expect_message_fixed(
+    msgs,
+    "Overwriting '.github/workflows/validate-submission.yaml'"
+  )
+  expect_message_fixed(
+    msgs,
+    "Overwriting '.github/workflows/validate-submission-comment.yaml'"
+  )
+  expect_equal(
+    readLines(".github/workflows/validate-submission.yaml")[1],
+    "name: Hub Submission Validation (R)"
+  )
+  expect_length(paths, 2)
+})
+
+test_that("use_hub_github_action confirms a pair with one prompt", {
+  withr::local_dir(withr::local_tempdir())
+  local_mocked_actions_repo()
+  write_stale_pair()
+  rlang::local_interactive(TRUE)
+  # Stands in for a prompt that is accepted, recording what it asked about.
+  asked <- list()
+  local_mocked_bindings(
+    confirm_overwrite = function(rel_paths) {
+      asked <<- c(asked, list(rel_paths))
+      TRUE
+    }
+  )
+
+  paths <- use_hub_github_action(name = "validate-submission", ref = "main")
+
+  expect_equal(
+    asked,
+    list(c(
+      ".github/workflows/validate-submission.yaml",
+      ".github/workflows/validate-submission-comment.yaml"
+    ))
+  )
+  expect_length(paths, 2)
+  expect_equal(
+    readLines(".github/workflows/validate-submission-comment.yaml")[1],
+    "name: Post Submission Validation Result"
+  )
+})
+
+test_that("use_hub_github_action writes nothing when the prompt is declined", {
+  withr::local_dir(withr::local_tempdir())
+  local_mocked_actions_repo()
+  fs::dir_create(".github/workflows")
+  writeLines("stale", ".github/workflows/validate-submission.yaml")
+  rlang::local_interactive(TRUE)
+  local_mocked_bindings(
+    confirm_overwrite = function(rel_paths) FALSE
+  )
+
   paths <- NULL
   expect_message(
-    paths <- use_hub_github_action(
-      name = "validate-submission-comment",
-      ref = "main"
-    ),
+    paths <- use_hub_github_action(name = "validate-submission", ref = "main"),
     "Not overwriting '.github/workflows/validate-submission.yaml'"
   )
 
-  expect_equal(
-    readLines(customised),
-    "name: Hub Submission Validation (R) # customised"
-  )
-  expect_true(fs::file_exists(
+  # The comment workflow it is paired with is not added on its own either.
+  expect_equal(readLines(".github/workflows/validate-submission.yaml"), "stale")
+  expect_false(fs::file_exists(
     ".github/workflows/validate-submission-comment.yaml"
   ))
-  expect_length(paths, 1)
-})
-
-test_that("use_hub_github_action replaces a workflow asked for by name", {
-  withr::local_dir(withr::local_tempdir())
-  local_mocked_actions_repo()
-  customised <- ".github/workflows/validate-submission.yaml"
-  fs::dir_create(".github/workflows")
-  writeLines("name: Hub Submission Validation (R) # customised", customised)
-
-  use_hub_github_action(name = "validate-submission", ref = "main")
-
-  expect_equal(readLines(customised)[1], "name: Hub Submission Validation (R)")
-})
-
-test_that("use_hub_github_action leaves a workflow alone when asked not to", {
-  withr::local_dir(withr::local_tempdir())
-  local_mocked_actions_repo()
-  # Stands in for an interactive session where the prompt is declined.
-  local_mocked_bindings(
-    confirm_overwrite = function(path, unattended) FALSE
-  )
-  customised <- ".github/workflows/validate-config.yaml"
-  fs::dir_create(".github/workflows")
-  writeLines("name: Hub Config Validation (R) # customised", customised)
-
-  paths <- NULL
-  expect_message(
-    paths <- use_hub_github_action(name = "validate-config", ref = "main"),
-    "Not overwriting '.github/workflows/validate-config.yaml'"
-  )
-
-  expect_equal(
-    readLines(customised),
-    "name: Hub Config Validation (R) # customised"
-  )
   expect_length(paths, 0)
 })
 
@@ -286,7 +349,7 @@ test_that("use_hub_github_action reports an unknown ref", {
 
   expect_error(
     use_hub_github_action(name = "validate-config", ref = "mian"),
-    "Could not find ref 'mian' in 'hubverse-org/hubverse-actions'"
+    "Could not find ref \"mian\" in \"hubverse-org/hubverse-actions\""
   )
 })
 
@@ -346,32 +409,6 @@ test_that("use_hub_github_action writes to the hub root", {
   expect_false(fs::dir_exists(".github"))
 })
 
-test_that("use_hub_github_action leaves an identical workflow unchanged", {
-  withr::local_dir(withr::local_tempdir())
-  local_mocked_actions_repo()
-
-  use_hub_github_action(name = "validate-config", ref = "main")
-
-  expect_message(
-    use_hub_github_action(name = "validate-config", ref = "main"),
-    "Leaving '.github/workflows/validate-config.yaml' unchanged"
-  )
-})
-
-test_that("use_hub_github_action overwrites a differing workflow", {
-  withr::local_dir(withr::local_tempdir())
-  local_mocked_actions_repo()
-  ga_path <- ".github/workflows/validate-config.yaml"
-  fs::dir_create(".github/workflows")
-  writeLines("stale", ga_path)
-
-  expect_message(
-    use_hub_github_action(name = "validate-config", ref = "main"),
-    "Overwriting '.github/workflows/validate-config.yaml'"
-  )
-  expect_equal(readLines(ga_path)[1], "name: Hub Config Validation (R)")
-})
-
 test_that("use_hub_github_action errors informatively on a failed download", {
   withr::local_dir(withr::local_tempdir())
   # Listed in the repository, but its contents cannot be fetched.
@@ -379,7 +416,7 @@ test_that("use_hub_github_action errors informatively on a failed download", {
 
   expect_error(
     use_hub_github_action(name = "ghost", ref = "main"),
-    "Could not download 'hubverse-org/hubverse-actions@main/ghost"
+    "Could not download \"hubverse-org/hubverse-actions@main/ghost"
   )
   expect_false(fs::file_exists(".github/workflows/ghost.yaml"))
 })

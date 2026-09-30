@@ -56,12 +56,7 @@ test_that("use_hub_dependabot works", {
   expect_equal(config$version, 2)
   expect_equal(config$updates[[1]]$`package-ecosystem`, "github-actions")
 
-  # Compares the bytes real gh() returns against the file just written from
-  # them, which the tests using the stubbed gh() cannot check.
-  expect_message(
-    use_hub_dependabot(ref = "main"),
-    "Leaving '.github/dependabot.yml' unchanged"
-  )
+  expect_error(use_hub_dependabot(ref = "main"), "already exists")
 })
 
 test_that("use_hub_dependabot reports what it writes", {
@@ -76,8 +71,8 @@ test_that("use_hub_dependabot reports what it writes", {
     msgs,
     paste0(
       "Saving '.github/dependabot.yml' from ",
-      "'hubverse-org/hubverse-actions@ak/dependabot-template/48/",
-      "dependabot/dependabot.yml'"
+      "\"hubverse-org/hubverse-actions@ak/dependabot-template/48/",
+      "dependabot/dependabot.yml\""
     ),
     all = FALSE,
     fixed = TRUE
@@ -110,40 +105,44 @@ test_that("use_hub_dependabot writes to the hub root", {
   expect_false(fs::dir_exists(".github"))
 })
 
-test_that("use_hub_dependabot leaves an identical configuration unchanged", {
+test_that("use_hub_dependabot stops at an existing file unattended", {
   withr::local_dir(withr::local_tempdir())
   local_mocked_dependabot()
+  fs::dir_create(".github")
+  writeLines("stale", ".github/dependabot.yml")
 
-  use_hub_dependabot(ref = "main")
-
-  expect_message(
+  err <- expect_error(
     use_hub_dependabot(ref = "main"),
-    "Leaving '.github/dependabot.yml' unchanged"
+    "'.github/dependabot.yml' already exists.",
+    fixed = TRUE
   )
+
+  expect_match(conditionMessage(err), "Set `overwrite = TRUE`", fixed = TRUE)
+  expect_equal(readLines(".github/dependabot.yml"), "stale")
 })
 
-test_that("use_hub_dependabot overwrites a differing configuration", {
+test_that("use_hub_dependabot replaces an existing file with overwrite", {
   withr::local_dir(withr::local_tempdir())
   local_mocked_dependabot()
   fs::dir_create(".github")
   writeLines("stale", ".github/dependabot.yml")
 
   expect_message(
-    use_hub_dependabot(ref = "main"),
+    use_hub_dependabot(ref = "main", overwrite = TRUE),
     "Overwriting '.github/dependabot.yml'"
   )
   expect_match(readLines(".github/dependabot.yml"), "monthly", all = FALSE)
 })
 
-test_that("use_hub_dependabot leaves a configuration alone when asked not to", {
+test_that("use_hub_dependabot writes nothing when the prompt is declined", {
   withr::local_dir(withr::local_tempdir())
   local_mocked_dependabot()
-  # Stands in for an interactive session where the prompt is declined.
-  local_mocked_bindings(
-    confirm_overwrite = function(path, unattended) FALSE
-  )
   fs::dir_create(".github")
   writeLines("version: 2 # customised", ".github/dependabot.yml")
+  rlang::local_interactive(TRUE)
+  local_mocked_bindings(
+    confirm_overwrite = function(rel_paths) FALSE
+  )
 
   path <- NULL
   expect_message(
@@ -170,7 +169,7 @@ test_that("use_hub_dependabot errors informatively on a failed download", {
     use_hub_dependabot(ref = "v1.1.0"),
     paste0(
       "Could not download ",
-      "'hubverse-org/hubverse-actions@v1.1.0/dependabot/dependabot.yml'"
+      "\"hubverse-org/hubverse-actions@v1.1.0/dependabot/dependabot.yml\""
     )
   )
   expect_match(

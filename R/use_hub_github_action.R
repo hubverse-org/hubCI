@@ -1,7 +1,6 @@
 # The download-and-write flow follows usethis::use_github_file() and
 # usethis::write_over() (MIT licensed, © Posit Software, PBC), reimplemented
-# against the gh API. Unlike write_over(), a non-interactive session overwrites
-# a differing file rather than refusing to.
+# against the gh API.
 
 #' Hubverse GitHub Actions workflow setup
 #'
@@ -21,8 +20,12 @@
 #'   or `"HEAD"` (meaning "tip of remote's default branch"). If not specified,
 #'   defaults to the latest published release of `hubverse-org/hubverse-actions`
 #'   (<https://github.com/hubverse-org/hubverse-actions/releases>)
+#' @param overwrite Whether to replace files that already exist. If `FALSE`,
+#'   an interactive session asks first, and a non-interactive session stops
+#'   with an error.
 #'
-#' @returns The paths of the workflow files added, invisibly. Called for the
+#' @returns The paths of the workflow files written, invisibly, or an empty
+#'   character vector if existing files were left in place. Called for the
 #'   side effect of writing `.github/workflows/<name>.yaml`.
 #'
 #' @details
@@ -34,13 +37,10 @@
 #' posting their result, and are added together: asking for
 #' `"validate-submission"` also adds `"validate-submission-comment"`.
 #'
-#' If the workflow file already exists, it is left alone when its contents match
-#' what is being downloaded. Otherwise, an interactive session asks before
-#' overwriting it, while a non-interactive one overwrites it and reports that it
-#' has done so, so that an unattended run leaves the hub on the requested ref.
-#' Local edits to a workflow you asked for will not survive such a run. A paired
-#' workflow you did not ask for is the exception: local changes to it stand
-#' unless you confirm the overwrite, or ask for it by name.
+#' Existing workflow files are replaced when `overwrite = TRUE`. Otherwise an
+#' interactive session asks once, listing them, and a non-interactive session
+#' stops with an error. Nothing is written unless every file can be, so a
+#' pair is always replaced together.
 #'
 #' Inspired by `usethis::use_github_action()`, and additionally accepts branch
 #' names containing slashes, which that function truncates at the first slash.
@@ -52,85 +52,82 @@
 #' \dontrun{
 #' use_hub_github_action(name = "validate-submission")
 #' }
-use_hub_github_action <- function(name, ref = NULL) {
+use_hub_github_action <- function(name, ref = NULL, overwrite = FALSE) {
   ref <- ref %||% latest_release()
   files <- resolve_workflows(name, ref)
 
   root <- locate_hub_root()
   paired <- setdiff(names(files), name)
   if (length(paired) > 0L) {
-    rlang::inform(c(
-      i = sprintf(
-        "'%s' works as a pair with %s, so both are added.",
-        name,
-        paste0("'", paired, "'", collapse = " and ")
-      )
+    cli::cli_inform(c(
+      i = "{.val {name}} works as a pair with {.val {paired}}, so both are added."
     ))
   }
 
-  paths <- purrr::imap_chr(
-    files,
-    write_workflow,
-    ref = ref,
+  rel_paths <- file.path(".github", "workflows", paste0(names(files), ".yaml"))
+  paths <- write_github_files(
+    rlang::set_names(files, rel_paths),
     root = root,
-    requested = name
+    sources = workflow_source(names(files), ref),
+    overwrite = overwrite
   )
-  invisible(unname(paths[!is.na(paths)]))
+  invisible(paths)
 }
 
-# Write one workflow file, reporting what happened to it. Returns the path of
-# the file now holding the workflow, or NA if an existing file was kept in its
-# place instead.
-write_workflow <- function(contents, name, ref, root, requested) {
-  # In a non-interactive session there is no one to confirm an overwrite.
-  # The workflow asked for by name is then replaced, but a paired workflow
-  # that came with it keeps its local edits.
-  write_github_file(
-    contents,
-    rel_path = file.path(".github", "workflows", paste0(name, ".yaml")),
-    root = root,
-    unattended = identical(name, requested),
-    source = workflow_source(name, ref)
-  )
-}
-
-# Write `contents` to `rel_path` under `root`, reporting what happened to the
-# file. `unattended` is whether a differing file is overwritten when there is
-# no one to ask, and `source` names where the contents came from. Returns the
-# path of the file now holding `contents`, or NA if an existing file was kept
-# in its place instead.
-write_github_file <- function(contents, rel_path, root, unattended, source) {
-  path <- file.path(root, rel_path)
-
-  existing <- file.exists(path)
-  if (existing) {
-    if (identical(readBin(path, "raw", n = file.size(path)), contents)) {
-      rlang::inform(c(v = sprintf("Leaving '%s' unchanged", rel_path)))
-      return(path)
+# Write `files`, a list of raw contents named by path relative to `root`.
+# Files that already exist are replaced when `overwrite` is TRUE, or when an
+# interactive session confirms it, once for all of them. Otherwise nothing is
+# written: a non-interactive session errors and an interactive one reports the
+# refusal. `sources` names where each file came from. Returns the paths
+# written.
+write_github_files <- function(
+  files,
+  root,
+  sources,
+  overwrite,
+  call = rlang::caller_env()
+) {
+  rel_paths <- names(files)
+  paths <- file.path(root, rel_paths)
+  existing <- rel_paths[file.exists(paths)]
+  if (length(existing) > 0L && !overwrite) {
+    if (!rlang::is_interactive()) {
+      cli::cli_abort(
+        c(
+          "{.path {existing}} already {?exists/exist}.",
+          i = "Set {.code overwrite = TRUE} to replace existing files."
+        ),
+        call = call
+      )
     }
-    if (!confirm_overwrite(rel_path, unattended = unattended)) {
-      rlang::inform(c(x = sprintf("Not overwriting '%s'", rel_path)))
-      return(NA_character_)
+    if (!confirm_overwrite(existing)) {
+      cli::cli_inform(c(x = "Not overwriting {.path {existing}}"))
+      return(character())
     }
   }
+  purrr::pwalk(list(files, rel_paths, sources), write_github_file, root = root)
+  paths
+}
 
+# Write `contents` to `rel_path` under `root`, creating the directory if
+# needed, and report it. `source` names where the contents came from.
+write_github_file <- function(contents, rel_path, source, root) {
+  path <- file.path(root, rel_path)
+  existing <- file.exists(path)
   rel_dir <- dirname(rel_path)
   dir <- file.path(root, rel_dir)
   if (!dir.exists(dir)) {
     dir.create(dir, recursive = TRUE)
-    rlang::inform(c(v = sprintf("Creating '%s/'", rel_dir)))
+    cli::cli_inform(c(v = "Creating {.path {rel_dir}/}"))
   }
   writeBin(contents, path)
-  rlang::inform(c(
-    v = sprintf(
-      "%s '%s' from '%s'",
-      if (existing) "Overwriting" else "Saving",
-      rel_path,
-      source
-    )
-  ))
-
-  path
+  if (existing) {
+    cli::cli_inform(c(
+      v = "Overwriting {.path {rel_path}} from {.val {source}}"
+    ))
+  } else {
+    cli::cli_inform(c(v = "Saving {.path {rel_path}} from {.val {source}}"))
+  }
 }
 
 # The hub root to write into, reporting it when it is not the working
@@ -139,7 +136,7 @@ locate_hub_root <- function() {
   wd <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
   root <- hub_root(wd)
   if (!identical(root, wd)) {
-    rlang::inform(c(i = sprintf("Using hub root '%s'", root)))
+    cli::cli_inform(c(i = "Using hub root {.path {root}}"))
   }
   root
 }
@@ -163,13 +160,11 @@ hub_root <- function(dir) {
   }
 }
 
-# Ask before replacing a file, if there is anyone to ask. `unattended` is the
-# answer when there is not.
-confirm_overwrite <- function(path, unattended) {
-  if (!interactive()) {
-    return(unattended)
-  }
-  isTRUE(utils::askYesNo(sprintf("Overwrite pre-existing file '%s'?", path)))
+# Ask whether to replace the files at `rel_paths`.
+confirm_overwrite <- function(rel_paths) {
+  isTRUE(utils::askYesNo(cli::format_inline(
+    "Overwrite pre-existing {?file/files} {.path {rel_paths}}?"
+  )))
 }
 
 # Get latest hubverse action release. Function largely sourced from
