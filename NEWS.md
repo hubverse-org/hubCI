@@ -1,9 +1,8 @@
-# hubCI 0.0.1.9000
+# hubCI 0.1.0
 
 * New `use_hub_dependabot()` installs a Dependabot configuration at `.github/dependabot.yml`, so that Dependabot opens a pull request in the hub whenever an action used by its workflows has a new major release (#25).
 * `use_hub_github_action()` now fails with the list of workflows a hub can add when asked for anything else, such as the `pr-comment` composite action, instead of reporting a download error.
 * Workflows that only work as a pair are now added together: asking for `validate-submission` also adds `validate-submission-comment`, which posts the validation result on the submitter's pull request.
-
 * `use_hub_github_action()` now accepts any git reference GitHub recognises, including branch names containing slashes such as `"ak/my-feature/27"`, which previously failed with a 404 error.
 * `use_hub_github_action()` gains an `overwrite` argument, `FALSE` by default. Existing workflow files are replaced when it is `TRUE`. Otherwise an interactive session asks once before replacing them, and a non-interactive session stops with an error instead of overwriting. Paired workflows are always replaced together (#35).
 
